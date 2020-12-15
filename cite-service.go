@@ -1015,6 +1015,14 @@ func ReturnPassage(w http.ResponseWriter, r *http.Request) {
 				requestedIndex = i
 			}
 		}
+
+		inboxURN := RequestedWork.WorkURN
+		if contains(RequestedWork.URN, requestUrn) {
+			inboxURN = requestUrn
+		}
+		inboxValue := fmt.Sprintf("<http://%s/texts/%s/inbox/>; rel=\"http://www.w3.org/ns/ldp#inbox\"", r.Host, inboxURN)
+		w.Header().Add("Link", inboxValue)
+
 		switch {
 		case contains(RequestedWork.URN, requestUrn):
 			switch {
