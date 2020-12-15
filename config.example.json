@@ -1,0 +1,6 @@
+{
+  "host": "localhost",
+  "port": ":8080",
+  "test_cex_source": "https://raw.githubusercontent.com/ThomasK81/tidyToPan/master/testdata/herodotus.cex",
+  "cex_source": "https://raw.githubusercontent.com/ThomasK81/CTSTextservice/master/cex/"
+}
