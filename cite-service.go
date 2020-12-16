@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/dgraph-io/badger"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"io"
@@ -89,6 +90,8 @@ type ServerConfig struct {
 	Source     string `json:"cex_source"`
 	TestSource string `json:"test_cex_source"`
 }
+
+var db *badger.DB
 
 func splitCTS(s string) CTSURN {
 	var result CTSURN
@@ -208,6 +211,14 @@ func removeDuplicatesUnordered(elements []string) []string {
 func main() {
 	confvar := LoadConfiguration("./config.json")
 	serverIP := confvar.Port
+
+	var err error
+	db, err = badger.Open(badger.DefaultOptions("./.db"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/cite", ReturnCiteVersion)
 	router.HandleFunc("/texts", ReturnWorkURNS)
@@ -226,6 +237,10 @@ func main() {
 	router.HandleFunc("/{CEX}/texts/urns/{URN}", ReturnReff)
 	router.HandleFunc("/{CEX}/texts/{URN}", ReturnPassage)
 	router.HandleFunc("/", ReturnCiteVersion)
+
+	router.HandleFunc("/texts/{URN}/inbox", handleInbox)
+	router.HandleFunc("/texts/{URN}/inbox/{ID}", handleNotification)
+
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
